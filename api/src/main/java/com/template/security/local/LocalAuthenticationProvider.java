@@ -1,9 +1,11 @@
 package com.template.security.local;
 
+import com.template.security.MemberContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -15,6 +17,8 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+
+        MemberContext memberContext = (MemberContext) userDetailsService.loadUserByUsername(authentication.getName());
         return null;
     }
 
