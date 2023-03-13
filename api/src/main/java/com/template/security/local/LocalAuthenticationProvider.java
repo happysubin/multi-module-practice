@@ -1,5 +1,6 @@
 package com.template.security.local;
 
+import com.template.security.JwtAuthenticationToken;
 import com.template.security.MemberContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -19,11 +20,19 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
         MemberContext memberContext = (MemberContext) userDetailsService.loadUserByUsername(authentication.getName());
-        return null;
+        if(isNotSamePassword(authentication.getCredentials().toString(), memberContext.getPassword())){
+            throw new RuntimeException("비밀번호가 다릅니다");
+        }
+
+        return new JwtAuthenticationToken(memberContext.getMemberId(), null, memberContext.getAuthorities());
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return false;
+        return authentication.equals(JwtAuthenticationToken.class);
+    }
+
+    private boolean isNotSamePassword(String rawPassword, String encoderPassword){
+        return !passwordEncoder.matches(rawPassword, encoderPassword); //rawPassword, encoderPassword 순으로 인자를 넣는다.
     }
 }

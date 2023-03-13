@@ -6,6 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class MemberContext implements UserDetails {
 
@@ -20,17 +21,17 @@ public class MemberContext implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return Collections.singleton(this.authority);
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return member.getAuth().getPassword();
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return member.getAuth().getEmail();
     }
 
     @Override
@@ -52,4 +53,9 @@ public class MemberContext implements UserDetails {
     public boolean isEnabled() {
         return false;
     }
+
+    public Long getMemberId() {
+        return member.getId();
+    }
+
 }

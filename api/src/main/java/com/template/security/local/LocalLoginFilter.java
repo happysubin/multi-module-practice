@@ -1,14 +1,18 @@
 package com.template.security.local;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.template.security.JwtAuthenticationToken;
 import com.template.security.jwt.JwtProvider;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,18 +22,28 @@ import java.io.IOException;
 
 public class LocalLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    private final JwtProvider jwtProvider;
+    private final ObjectMapper objectMapper;
 
-    public LocalLoginFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider) {
+    public LocalLoginFilter(AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
         super(new AntPathRequestMatcher("/login", "POST"), authenticationManager);
-        this.jwtProvider = jwtProvider;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public Authentication attemptAuthentication(
             HttpServletRequest request, HttpServletResponse response
-    ) throws AuthenticationException, IOException, ServletException {
-        Authentication authentication = null;
-        return this.getAuthenticationManager().authenticate(authentication);
+    ) throws AuthenticationException, IOException {
+        LoginRequestDto loginDto = objectMapper.readValue(request.getReader(), LoginRequestDto.class);
+        validateLoginRequestDto(loginDto);
+        JwtAuthenticationToken token = new JwtAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
+        return this.getAuthenticationManager().authenticate(token);
+    }
+
+    private void validateLoginRequestDto(
+            LoginRequestDto loginDto
+    ) {
+        if(!StringUtils.hasText(loginDto.getEmail()) || !StringUtils.hasText(loginDto.getPassword())) {
+            throw new AuthenticationServiceException("Username or Password not provided");
+        }
     }
 }

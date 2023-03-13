@@ -1,3 +1,10 @@
 spring:
   profiles:
     include: core
+
+
+
+jwt:
+  header: Authorization
+  secret-key: 109ejaovnlxnvqaiofqwjeofjmdslknvbubnqwpofjlsknvmxn013i419ur8iufghjoidf812374iuyewhfi92hids
+  token-validity-in-seconds: 3600

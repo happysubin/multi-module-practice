@@ -1,12 +1,11 @@
 package com.template.security;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.template.core.domain.member.MemberRepository;
 import com.template.security.jwt.JwtProvider;
 import com.template.security.jwt.JwtProviderImpl;
-import com.template.security.local.LocalAuthenticationProvider;
-import com.template.security.local.LocalLoginFilter;
-import com.template.security.local.LocalUserDetailService;
+import com.template.security.local.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -29,23 +28,30 @@ import java.security.SecureRandom;
 public class SecurityConfig {
 
     private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper;
+    private final JwtProvider jwtProvider;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
                 .formLogin().disable()
-                .csrf().disable();
+                .csrf().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(new LocalAuthenticationEntryPoint());
 
 
         http.authorizeRequests().antMatchers(HttpMethod.POST, "/members").permitAll();
         http.addFilterBefore(loginFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
     @Bean
     LocalLoginFilter loginFilter() throws NoSuchAlgorithmException {
-        return new LocalLoginFilter(authenticationManager(), jwtProvider());
+        LocalLoginFilter localLoginFilter = new LocalLoginFilter(authenticationManager(), objectMapper);
+        localLoginFilter.setAuthenticationSuccessHandler(loginSuccessHandler());
+        return localLoginFilter;
     }
 
     @Bean
@@ -70,7 +76,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtProvider jwtProvider(){
-        return new JwtProviderImpl();
+    LoginSuccessHandler loginSuccessHandler(){
+        return new LoginSuccessHandler(objectMapper, jwtProvider);
     }
 }

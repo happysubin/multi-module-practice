@@ -14,7 +14,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
-    @Transactional
+    @Transactional(readOnly = false)
     public Long registerMember(
             RegisterMemberRequestDto requestDto
     ){
