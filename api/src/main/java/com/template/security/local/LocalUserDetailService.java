@@ -20,7 +20,7 @@ public class LocalUserDetailService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Member member = memberRepository.findMemberByEmail(email)
                 .orElseThrow(
-                        () -> new RuntimeException("존재하지 않는 유저다.")
+                        () -> new UsernameNotFoundException("존재하지 않는 유저다.")
                 );
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(member.getRole().name());
         return new MemberContext(member, authority);

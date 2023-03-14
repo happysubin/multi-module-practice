@@ -90,3 +90,7 @@ public class JwtProviderImpl implements JwtProvider{
         }
     }
 }
+
+/**
+ * 방금 생성한 JWT에서 Expired 오류 발생.
+ */

@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,13 +36,24 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+                .httpBasic().disable()
                 .formLogin().disable()
                 .csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(new LocalAuthenticationEntryPoint());
 
 
-        http.authorizeRequests().antMatchers(HttpMethod.POST, "/members").permitAll();
+        http
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS); //세션 사용 안함
+
+
+        http.authorizeRequests()
+                .antMatchers(HttpMethod.POST, "/members").permitAll()
+                .anyRequest().hasRole("USER");
+
+
+        http.addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(loginFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -78,5 +90,10 @@ public class SecurityConfig {
     @Bean
     LoginSuccessHandler loginSuccessHandler(){
         return new LoginSuccessHandler(objectMapper, jwtProvider);
+    }
+
+    @Bean
+    CustomAuthenticationFilter customAuthenticationFilter() throws NoSuchAlgorithmException {
+        return new CustomAuthenticationFilter(authenticationManager(), jwtProvider);
     }
 }
